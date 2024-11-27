@@ -33,6 +33,7 @@
 from os import path
 from platform import system
 from typing import List
+import time
 
 from pylibftdi import Device, Driver, LibraryMissingError
 
@@ -42,36 +43,19 @@ DRIVER_PATH = path.abspath(path.dirname(__file__))
 
 if system() == "Linux":
 
-    from ctypes import cdll, c_long, byref, Structure
-
     Driver._lib_search["libftdi"] = tuple([
         path.join(DRIVER_PATH, "libftdi.so"),
         path.join(DRIVER_PATH, "libftdi.so.1"),
         path.join(DRIVER_PATH, "libftdi1.so")
     ] + list(Driver._lib_search["libftdi"]))
 
-    _LIBC = cdll.LoadLibrary("libc.so.6")
-
-    class timespec(Structure):
-        """A timespec."""
-
-        _fields_ = [("tv_sec", c_long), ("tv_nsec", c_long)]
-
     def wait_ms(milliseconds):
         """Wait for a specified number of milliseconds."""
-        dummy = timespec()
-        sleeper = timespec()
-        sleeper.tv_sec = int(milliseconds / 1000)
-        sleeper.tv_nsec = (milliseconds % 1000) * 1000000
-        _LIBC.nanosleep(byref(sleeper), byref(dummy))
+        time.sleep(milliseconds / 1000)
 
-    def wait_us(nanoseconds):
-        """Wait for a specified number of nanoseconds."""
-        dummy = timespec()
-        sleeper = timespec()
-        sleeper.tv_sec = int(nanoseconds / 1000000)
-        sleeper.tv_nsec = (nanoseconds % 1000) * 1000
-        _LIBC.nanosleep(byref(sleeper), byref(dummy))
+    def wait_us(microseconds):
+        """Wait for a specified number of microseconds."""
+        time.sleep(microseconds / 1000000)
 
 elif system() == "Windows":
 
